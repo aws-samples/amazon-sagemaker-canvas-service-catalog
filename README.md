@@ -1,11 +1,6 @@
-## My Project
+## amazon-sagemaker-canvas-service-catalog
 
-TODO: Fill this README out!
-
-Be sure to:
-
-* Change the title in this README
-* Edit your repository description on GitHub
+TODO: Link to blog 
 
 ## Security
 
