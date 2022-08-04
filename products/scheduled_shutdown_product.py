@@ -22,7 +22,7 @@ class ScheduledShutdownProduct(sc.ProductStack):
             self,
             "CronSchedulingExpression",
             type="String",
-            default="cron(0 18 * * ? *)",
+            default="cron(0 19 ? * FRI *)",
         )
 
         # ==================================================
