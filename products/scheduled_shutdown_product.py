@@ -62,7 +62,7 @@ class ScheduledShutdownProduct(sc.ProductStack):
             function_name="canvas-scheduled-shutdown",
             runtime=lambda_.Runtime.PYTHON_3_9,
             code=lambda_.Code.from_inline(open('lambda_images/shutdown/shutdown.py').read()),
-            handler="shutdown.lambda_handler",
+            handler="index.lambda_handler",
             memory_size=128,
             role=self.role,
             timeout=Duration.seconds(300),
