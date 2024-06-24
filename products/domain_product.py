@@ -116,7 +116,7 @@ def lambda_handler(event, context):
                     'TimeSeriesForecastingSettings': {'Status': 'ENABLED'},
                     'ModelRegisterSettings': {'Status': 'ENABLED'},
                     'DirectDeploySettings': {'Status': 'ENABLED'},
-                    'KendraSettings': {'Status': 'ENABLED'},
+                    'KendraSettings': {'Status': 'DISABLED'}, # Change to ENABLED when you want to use Kendra for RAG
                     'GenerativeAiSettings': {'AmazonBedrockRoleArn':sagemaker_execution_role},
                     # Uncomment and modify the below if you need to add OAuth for Salesforce or Snowflake
                     # 'IdentityProviderOAuthSettings': [
