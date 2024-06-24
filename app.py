@@ -134,7 +134,7 @@ class SCPortfolioStack(Stack):
         # ========= GRANT ACCESS TO AN IAM ROLE =========
         # ===============================================
         role_arn_access = (
-            "arn:aws:iam::859755744029:role/administrator"  # Replace with your role ARN
+            "[ROLE ARN FOR PORTFOLIO ACCESS]"  # Replace with your role ARN
         )
 
         user_role = iam.Role.from_role_arn(self, "Role", role_arn=role_arn_access)
