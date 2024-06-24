@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This CloudFormation template creates a new SageMaker UserProfile with a specific IAM role on an existing SageMaker Studio Domain to use Amazon SageMaker Canvas.
+
+Parameters:
+  UserProfileName:
+    Type: String
+    Description: The name of the new UserProfile
+    Default: canvas-user-profile
+  
+
+Resources:
+  NewUserProfileExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'AmazonSageMakerExecutionRole-${UserProfileName}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - sagemaker.amazonaws.com
+                - forecast.amazonaws.com
+                - bedrock.amazonaws.com
+                - redshift.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerCanvasFullAccess
+        - arn:aws:iam::aws:policy/AmazonSageMakerCanvasDataPrepFullAccess
+        - arn:aws:iam::aws:policy/AmazonSageMakerCanvasDirectDeployAccess
+        - arn:aws:iam::aws:policy/AmazonSageMakerCanvasAIServicesAccess
+        - arn:aws:iam::aws:policy/AmazonSageMakerCanvasBedrockAccess
+        - arn:aws:iam::aws:policy/AmazonSageMakerCanvasForecastAccess
+      Policies:
+        - PolicyName: "CustomCanvasPermissions"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: "SMStudioUserProfileAppPermissionsCreateAndDelete"
+                Effect: "Allow"
+                Action:
+                  - "sagemaker:CreateApp"
+                  - "sagemaker:DeleteApp"
+                Resource: 
+                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/canvas/*"
+                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/Canvas/*"
+                Condition:
+                  Null:
+                    "sagemaker:OwnerUserProfileArn": "true"
+              - Sid: "SMStudioCreatePresignedDomainUrlForUserProfile"
+                Effect: "Allow"
+                Action:
+                  - "sagemaker:CreatePresignedDomainUrl"
+                Resource: !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:user-profile/${!ImportValue SageMakerDomainId}/${UserProfileName}"
+              - Sid: "SMStudioAppPermissionsListAndDescribe"
+                Effect: "Allow"
+                Action:
+                  - "sagemaker:ListApps"
+                  - "sagemaker:ListDomains"
+                  - "sagemaker:ListUserProfiles"
+                  - "sagemaker:ListSpaces"
+                  - "sagemaker:DescribeApp"
+                  - "sagemaker:DescribeDomain"
+                  - "sagemaker:DescribeUserProfile"
+                  - "sagemaker:DescribeSpace"
+                Resource: "*"
+              - Sid: "SMStudioAppPermissionsTagOnCreate"
+                Effect: "Allow"
+                Action:
+                  - "sagemaker:AddTags"
+                Resource: !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:*/*"
+                Condition:
+                  Null:
+                    "sagemaker:TaggingAction": "false"
+              - Sid: "SMStudioRestrictSharedSpacesWithoutOwners"
+                Effect: "Allow"
+                Action:
+                  - "sagemaker:CreateSpace"
+                  - "sagemaker:UpdateSpace"
+                  - "sagemaker:DeleteSpace"
+                Resource: !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:space/${!ImportValue SageMakerDomainId}/*"
+                Condition:
+                  Null:
+                    "sagemaker:OwnerUserProfileArn": "true"
+              - Sid: "SMStudioRestrictCreatePrivateSpaceAppsToOwnerUserProfile"
+                Effect: "Allow"
+                Action:
+                  - "sagemaker:CreateApp"
+                  - "sagemaker:DeleteApp"
+                Resource: !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/${!ImportValue SageMakerDomainId}/*"
+                Condition:
+                  ArnLike:
+                    "sagemaker:OwnerUserProfileArn": !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:user-profile/${!ImportValue SageMakerDomainId}/${UserProfileName}"
+                  StringEquals:
+                    "sagemaker:SpaceSharingType":
+                      - "Private"
+              - Sid: "AllowAppActionsForSharedSpaces"
+                Effect: "Allow"
+                Action:
+                  - "sagemaker:CreateApp"
+                  - "sagemaker:DeleteApp"
+                Resource: !Sub "arn:aws:sagemaker:*:${AWS::AccountId}:app/${!ImportValue SageMakerDomainId}/*/*/*"
+                Condition:
+                  StringEquals:
+                    "sagemaker:SpaceSharingType":
+                      - "Shared"
+
+  NewUserProfile:
+    Type: AWS::SageMaker::UserProfile
+    Properties:
+      DomainId: !ImportValue SageMakerDomainId
+      UserProfileName: !Ref UserProfileName
+      UserSettings:
+        ExecutionRole: !GetAtt NewUserProfileExecutionRole.Arn
+
+Outputs:
+  UserProfileArn:
+    Description: "The ARN of the new User Profile"
+    Value: !GetAtt NewUserProfile.UserProfileArn

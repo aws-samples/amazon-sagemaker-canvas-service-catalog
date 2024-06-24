@@ -1,5 +1,8 @@
 from constructs import Construct
-from aws_cdk import aws_kms as kms, aws_iam as iam
+from aws_cdk import (
+    aws_kms as kms, aws_iam as iam,
+    Stack
+)
 
 
 class KMSKey(Construct):

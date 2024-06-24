@@ -1,6 +1,9 @@
 import os
 from constructs import Construct
-from aws_cdk import aws_ec2 as ec2
+from aws_cdk import (
+    Stack,
+    aws_ec2 as ec2
+)
 
 
 class Networking(Construct):
@@ -10,17 +13,18 @@ class Networking(Construct):
         # ==================================================
         # ===================== VPC ========================
         # ==================================================
-        self.region = os.environ["CDK_DEFAULT_REGION"]
+        self.account_id = Stack.of(self).account
+        self.aws_region = Stack.of(self).region
 
         self.vpc = ec2.Vpc(
             self,
             "DomainVPC",
-            cidr="10.0.0.0/16",
+            ip_addresses=ec2.IpAddresses.cidr("10.0.0.0/16"),
             max_azs=3,
             subnet_configuration=[
                 ec2.SubnetConfiguration(
                     name="Private",
-                    subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT,
+                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,
                     cidr_mask=24,
                 ),
                 ec2.SubnetConfiguration(
@@ -36,15 +40,6 @@ class Networking(Construct):
             "S3Endpoint", service=ec2.GatewayVpcEndpointAwsService.S3
         )
         self.vpc.add_interface_endpoint(
-            "KMSEndpoint", service=ec2.InterfaceVpcEndpointAwsService.KMS
-        )
-        self.vpc.add_interface_endpoint(
-            "ECREndpoint", service=ec2.InterfaceVpcEndpointAwsService.ECR
-        )
-        self.vpc.add_interface_endpoint(
-            "ECRDockerEndpoint", service=ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER
-        )
-        self.vpc.add_interface_endpoint(
             "SMAPIEndpoint", service=ec2.InterfaceVpcEndpointAwsService.SAGEMAKER_API
         )
         self.vpc.add_interface_endpoint(
@@ -52,17 +47,15 @@ class Networking(Construct):
             service=ec2.InterfaceVpcEndpointAwsService.SAGEMAKER_RUNTIME,
         )
         self.vpc.add_interface_endpoint(
+            "SMStudioeEndpoint",
+            service=ec2.InterfaceVpcEndpointAwsService.SAGEMAKER_STUDIO,
+        )
+        self.vpc.add_interface_endpoint(
             "SMNotebookEndpoint",
             service=ec2.InterfaceVpcEndpointAwsService.SAGEMAKER_NOTEBOOK,
         )
         self.vpc.add_interface_endpoint(
-            "AthenaEndpoint", service=ec2.InterfaceVpcEndpointAwsService.ATHENA
-        )
-        self.vpc.add_interface_endpoint(
             "STSEndpoint", service=ec2.InterfaceVpcEndpointAwsService.STS
-        )
-        self.vpc.add_interface_endpoint(
-            "SSMEndpoint", service=ec2.InterfaceVpcEndpointAwsService.SSM
         )
         self.vpc.add_interface_endpoint(
             "CWLogsEndpoint", service=ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS
@@ -71,32 +64,69 @@ class Networking(Construct):
             "CWEndpoint", service=ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH
         )
         self.vpc.add_interface_endpoint(
+            "ECREndpoint", service=ec2.InterfaceVpcEndpointAwsService.ECR
+        )
+        self.vpc.add_interface_endpoint(
+            "ECRDockerEndpoint", service=ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER
+        )
+        self.vpc.add_interface_endpoint(
+            "KMSEndpoint", service=ec2.InterfaceVpcEndpointAwsService.KMS
+        )
+        self.vpc.add_interface_endpoint(
+            "EC2Endpoint", service=ec2.InterfaceVpcEndpointAwsService.EC2
+        )
+        self.vpc.add_interface_endpoint(
+            "ApplicationAutoScalingEndpoint", service=ec2.InterfaceVpcEndpointAwsService.APPLICATION_AUTOSCALING
+        )
+        self.vpc.add_interface_endpoint(
+            "AthenaEndpoint", service=ec2.InterfaceVpcEndpointAwsService.ATHENA
+        )
+        self.vpc.add_interface_endpoint(
+            "SSMEndpoint", service=ec2.InterfaceVpcEndpointAwsService.SSM
+        )
+        self.vpc.add_interface_endpoint(
             "SecretsEndpoint",
             service=ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
         )
         self.vpc.add_interface_endpoint(
             "RedshiftEndpoint",
-            service=ec2.InterfaceVpcEndpointService(
-                f"com.amazonaws.{self.region}.redshift", 443
-            ),
+            service=ec2.InterfaceVpcEndpointAwsService.REDSHIFT
         )
         self.vpc.add_interface_endpoint(
             "RedshiftDataEndpoint",
-            service=ec2.InterfaceVpcEndpointService(
-                f"com.amazonaws.{self.region}.redshift-data", 443
-            ),
+            service=ec2.InterfaceVpcEndpointAwsService.REDSHIFT_DATA
         )
         self.vpc.add_interface_endpoint(
-            "ForecastEndpoint",
-            service=ec2.InterfaceVpcEndpointService(
-                f"com.amazonaws.{self.region}.forecast", 443
-            ),
+            "GlueEndpoint", 
+            service=ec2.InterfaceVpcEndpointAwsService.GLUE
         )
         self.vpc.add_interface_endpoint(
-            "ForecastQueryEndpoint",
-            service=ec2.InterfaceVpcEndpointService(
-                f"com.amazonaws.{self.region}.forecastquery", 443
-            ),
+            "RDSEndpoint", 
+            service=ec2.InterfaceVpcEndpointAwsService.RDS
+        )
+        self.vpc.add_interface_endpoint(
+            "ComprehendEndpoint", 
+            service=ec2.InterfaceVpcEndpointAwsService.COMPREHEND
+        )
+        self.vpc.add_interface_endpoint(
+            "RekognitionEndpoint", 
+            service=ec2.InterfaceVpcEndpointAwsService.REKOGNITION
+        )
+        self.vpc.add_interface_endpoint(
+            "TextractEndpoint", 
+            service=ec2.InterfaceVpcEndpointAwsService.TEXTRACT
+        )
+        self.vpc.add_interface_endpoint(
+            "BedrockEndpoint", 
+            service=ec2.InterfaceVpcEndpointAwsService.BEDROCK
+        )
+        self.vpc.add_interface_endpoint(
+            "BedrockRuntimeEndpoint", 
+            service=ec2.InterfaceVpcEndpointAwsService.BEDROCK_RUNTIME
+        )
+        self.vpc.add_interface_endpoint(
+            "KendraEndpoint", 
+            service=ec2.InterfaceVpcEndpointAwsService.KENDRA
         )
 
         self.vpc_id = self.vpc.vpc_id

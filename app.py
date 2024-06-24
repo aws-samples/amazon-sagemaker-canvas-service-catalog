@@ -2,13 +2,14 @@ from constructs import Construct
 from aws_cdk import (
     aws_iam as iam,
     aws_servicecatalog as sc,
-    App,
-    Stack,
+    App, Stack, Environment,
 )
 from products.domain_product import DomainProduct
 from products.canvas_user_product import CanvasUserProduct
-from products.scheduled_shutdown_product import ScheduledShutdownProduct
+# from products.scheduled_shutdown_product import ScheduledShutdownProduct
 from products.s3_bucket_product import BucketProduct
+from products.automated_shutdown_product import AutoShutdownProduct
+import os
 
 
 class SCPortfolioStack(Stack):
@@ -29,10 +30,28 @@ class SCPortfolioStack(Stack):
         # ===============================================
         # =========== CREATE PRODUCTS PORTFOLIO ========
         # ===============================================
+
+        # s3_bucket_product = sc.CloudFormationProduct(
+        #     self,
+        #     "SCProductS3Bucket",
+        #     product_name="S3 bucket with CORS",
+        #     owner="CCOE",
+        #     description="Default SageMaker bucket with CORS policy for Canvas",
+        #     distributor="CCOE",
+        #     product_versions=[
+        #         sc.CloudFormationProductVersion(
+        #             product_version_name="v1",
+        #             cloud_formation_template=sc.CloudFormationTemplate.from_product_stack(
+        #                 BucketProduct(self, "BucketProduct")
+        #             ),
+        #         )
+        #     ],
+        # )
+
         domain_product = sc.CloudFormationProduct(
             self,
             "SCProductDomain",
-            product_name="Studio Domain",
+            product_name="1 - Studio Domain",
             owner="CCOE",
             description="SageMaker Studio Domain for Canvas",
             distributor="CCOE",
@@ -49,7 +68,7 @@ class SCPortfolioStack(Stack):
         canvas_user_product = sc.CloudFormationProduct(
             self,
             "SCProductCanvasUser",
-            product_name="Canvas User",
+            product_name="2 - Canvas User",
             owner="CCOE",
             description="SageMaker Studio User Profile for Canvas",
             distributor="CCOE",
@@ -63,38 +82,40 @@ class SCPortfolioStack(Stack):
             ],
         )
 
-        canvas_scheduled_shutdown_product = sc.CloudFormationProduct(
-            self,
-            "SCProductCanvasScheduledShutdown",
-            product_name="Canvas Scheduled Shutdown",
-            owner="CCOE",
-            description="Scheduled Lambda shutting down Canvas automatically",
-            distributor="CCOE",
-            product_versions=[
-                sc.CloudFormationProductVersion(
-                    product_version_name="v1",
-                    cloud_formation_template=sc.CloudFormationTemplate.from_product_stack(
-                        ScheduledShutdownProduct(
-                            self,
-                            "CanvasScheduledShutdownProduct"
-                        )
-                    ),
-                )
-            ],
-        )
+        # canvas_scheduled_shutdown_product = sc.CloudFormationProduct(
+        #     self,
+        #     "SCProductCanvasScheduledShutdown",
+        #     product_name="Canvas Scheduled Shutdown",
+        #     owner="CCOE",
+        #     description="Scheduled Lambda shutting down Canvas automatically",
+        #     distributor="CCOE",
+        #     product_versions=[
+        #         sc.CloudFormationProductVersion(
+        #             product_version_name="v1",
+        #             cloud_formation_template=sc.CloudFormationTemplate.from_product_stack(
+        #                 ScheduledShutdownProduct(
+        #                     self,
+        #                     "CanvasScheduledShutdownProduct"
+        #                 )
+        #             ),
+        #         )
+        #     ],
+        # )
 
-        s3_bucket_product = sc.CloudFormationProduct(
+        canvas_automated_shutdown_product = sc.CloudFormationProduct(
             self,
-            "SCProductS3Bucket",
-            product_name="S3 bucket with CORS",
+            "SCProductCanvasAutomatedShutdown",
+            product_name="3 - Canvas Automated Shutdown",
             owner="CCOE",
-            description="Default SageMaker bucket with CORS policy for Canvas",
+            description="Automated Lambda shutting down Canvas automatically",
             distributor="CCOE",
             product_versions=[
                 sc.CloudFormationProductVersion(
                     product_version_name="v1",
                     cloud_formation_template=sc.CloudFormationTemplate.from_product_stack(
-                        BucketProduct(self, "BucketProduct")
+                        AutoShutdownProduct(
+                            self, "CanvasAutomatedShutdownProduct"
+                        )
                     ),
                 )
             ],
@@ -105,14 +126,15 @@ class SCPortfolioStack(Stack):
         # ===============================================
         canvas_portfolio.add_product(domain_product)
         canvas_portfolio.add_product(canvas_user_product)
-        canvas_portfolio.add_product(canvas_scheduled_shutdown_product)
-        canvas_portfolio.add_product(s3_bucket_product)
+        # canvas_portfolio.add_product(canvas_scheduled_shutdown_product)
+        canvas_portfolio.add_product(canvas_automated_shutdown_product)
+        # canvas_portfolio.add_product(s3_bucket_product)
 
         # ===============================================
         # ========= GRANT ACCESS TO AN IAM ROLE =========
         # ===============================================
         role_arn_access = (
-            "<ADD YOUR ROLE ARN FOR PORTFOLIO ACCESS>"  # Replace with your role ARN
+            "arn:aws:iam::859755744029:role/administrator"  # Replace with your role ARN
         )
 
         user_role = iam.Role.from_role_arn(self, "Role", role_arn=role_arn_access)
@@ -120,5 +142,10 @@ class SCPortfolioStack(Stack):
 
 
 app = App()
-SCPortfolioStack(app, "SCPortfolioStack")
+SCPortfolioStack(app, "SCPortfolioStack",
+                 env=Environment(
+                     account=os.getenv("CDK_DEFAULT_ACCOUNT"),
+                     # region=os.getenv("CDK_DEFAULT_REGION"),
+                     region = "us-west-2"
+                 ))
 app.synth()
