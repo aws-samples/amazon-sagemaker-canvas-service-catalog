@@ -83,6 +83,7 @@ Resources:
                   - s3:GetBucketCORS
                   - s3:PutBucketCORS
                   - s3:CreateBucket
+                  - s3:HeadBucket
                 Resource: !Sub "arn:aws:s3:::${S3BucketPrefix}-${AWS::Region}-${AWS::AccountId}"
   S3BucketManagementFunction:
     Type: AWS::Lambda::Function
@@ -90,6 +91,9 @@ Resources:
       FunctionName: ManageS3Bucket
       Handler: index.handler
       Role: !GetAtt S3BucketManagementRole.Arn
+      Runtime: python3.12
+      Timeout: 30
+      MemorySize: 128
       Code:
         ZipFile: |
           import json
@@ -128,8 +132,6 @@ Resources:
                   'PhysicalResourceId': bucket_name,
                   'Data': {'BucketName': bucket_name}
               }
-      Runtime: python3.12
-      Timeout: 300
   S3BucketCustomResource:
     Type: Custom::ManageS3Bucket
     Properties:
@@ -880,9 +882,9 @@ Resources:
 
       Description: Enable Sagemaker Canvas Settings
       Handler: index.lambda_handler
-      MemorySize: 512
+      MemorySize: 128
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.10
+      Runtime: python3.12
       Timeout: 10
   EnableCanvasSettings:
     Type: Custom::ResourceForEnablingSageMakerCanvasSettings
