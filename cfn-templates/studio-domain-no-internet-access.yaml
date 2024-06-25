@@ -828,9 +828,6 @@ Resources:
                   - sagemaker:AddTags
                 Resource:
                   - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:*/*"
-                Condition:
-                  Bool:
-                    sagemaker:TaggingAction: "false"
 
   ### SageMaker Canvas Extra Settings
   LambdaExecutionRole:
