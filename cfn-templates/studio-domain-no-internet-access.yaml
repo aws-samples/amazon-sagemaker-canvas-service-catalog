@@ -817,6 +817,7 @@ Resources:
                   - sagemaker:CreatePresignedDomainUrl
                 Resource:
                   - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/Canvas/*"
+                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/canvas/*"
                 Condition:
                   Bool:
                     sagemaker:OwnerUserProfileArn: "false"
