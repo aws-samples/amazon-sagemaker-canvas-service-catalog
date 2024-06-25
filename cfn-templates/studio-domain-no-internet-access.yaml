@@ -62,7 +62,6 @@ Resources:
   S3BucketManagementRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: S3BucketManagementRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -88,7 +87,6 @@ Resources:
   S3BucketManagementFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: ManageS3Bucket
       Handler: index.handler
       Role: !GetAtt S3BucketManagementRole.Arn
       Runtime: python3.12
