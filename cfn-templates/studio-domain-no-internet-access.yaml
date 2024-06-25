@@ -99,6 +99,7 @@ Resources:
           import json
           import boto3
           import botocore
+          import cfnresponse
 
           s3 = boto3.client('s3')
 
@@ -118,20 +119,34 @@ Resources:
               }
 
               try:
+                  # Check if the bucket exists
                   s3.head_bucket(Bucket=bucket_name)
                   s3.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=cors_configuration)
               except botocore.exceptions.ClientError as e:
+                  # If a 404 error occurs, then the bucket does not exist
                   if e.response['Error']['Code'] == '404':
-                      s3.create_bucket(Bucket=bucket_name)
-                      s3.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=cors_configuration)
+                      try:
+                          # Create the bucket
+                          s3.create_bucket(Bucket=bucket_name)
+                          # Set the CORS configuration
+                          s3.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=cors_configuration)
+                      except botocore.exceptions.ClientError as e:
+                          # If an error occurs during bucket creation or CORS setting, return an error
+                          print(f"Error creating or setting CORS for bucket {bucket_name}: {e}")
+                          cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, bucket_name)
+                          return
                   else:
-                      raise e
+                      # If any other error occurs, return an error
+                      print(f"Error accessing bucket {bucket_name}: {e}")
+                      cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, bucket_name)
+                      return
+              except Exception as e:
+                  # If any other unexpected error occurs, return an error
+                  print(f"Unexpected error: {e}")
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, bucket_name)
+                  return
 
-              return {
-                  'Status': 'SUCCESS',
-                  'PhysicalResourceId': bucket_name,
-                  'Data': {'BucketName': bucket_name}
-              }
+              cfnresponse.send(event, context, cfnresponse.SUCCESS, {'BucketName': bucket_name}, bucket_name)
   S3BucketCustomResource:
     Type: Custom::ManageS3Bucket
     Properties:
@@ -856,29 +871,32 @@ Resources:
               sagemaker_execution_role = event['ResourceProperties']['SageMakerExecutionRoleArn']
               canvas_bucket_artifacts = event['ResourceProperties']['CanvasBucketName']
 
-              if 'RequestType' in event and event['RequestType'] == 'Create':
-                  client.update_domain(
-                      DomainId=sagemaker_domain_id,
-                      DefaultUserSettings={
-                        'CanvasAppSettings': {
-                          'WorkspaceSettings': {'S3ArtifactPath': f's3://{canvas_bucket_artifacts}/'},
-                          'TimeSeriesForecastingSettings': {'Status': 'ENABLED'},
-                          'ModelRegisterSettings': {'Status': 'ENABLED'},
-                          'DirectDeploySettings': {'Status': 'ENABLED'},
-                          'KendraSettings': {'Status': 'DISABLED'}, # Change to ENABLED when you want to use Kendra for RAG
-                          'GenerativeAiSettings': {'AmazonBedrockRoleArn':sagemaker_execution_role},
-                          # Uncomment and modify the below if you need to add OAuth for Salesforce or Snowflake
-                          # 'IdentityProviderOAuthSettings': [
-                          #     {
-                          #         'DataSourceName': 'SalesforceGenie'|'Snowflake',
-                          #         'Status': 'ENABLED'|'DISABLED',
-                          #         'SecretArn': 'string'
-                          #     },
-                          # ],
+              try:
+                if 'RequestType' in event and event['RequestType'] == 'Create':
+                    client.update_domain(
+                        DomainId=sagemaker_domain_id,
+                        DefaultUserSettings={
+                          'CanvasAppSettings': {
+                            'WorkspaceSettings': {'S3ArtifactPath': f's3://{canvas_bucket_artifacts}/'},
+                            'TimeSeriesForecastingSettings': {'Status': 'ENABLED'},
+                            'ModelRegisterSettings': {'Status': 'ENABLED'},
+                            'DirectDeploySettings': {'Status': 'ENABLED'},
+                            'KendraSettings': {'Status': 'DISABLED'}, # Change to ENABLED when you want to use Kendra for RAG
+                            'GenerativeAiSettings': {'AmazonBedrockRoleArn':sagemaker_execution_role},
+                            # Uncomment and modify the below if you need to add OAuth for Salesforce or Snowflake
+                            # 'IdentityProviderOAuthSettings': [
+                            #     {
+                            #         'DataSourceName': 'SalesforceGenie'|'Snowflake',
+                            #         'Status': 'ENABLED'|'DISABLED',
+                            #         'SecretArn': 'string'
+                            #     },
+                            # ],
+                          }
                         }
-                      }
-                  )
-              cfnresponse.send(event, context, response_status, {}, '')
+                    )
+                cfnresponse.send(event, context, response_status, {}, '')
+              except Exception as e:
+                cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, context.log_stream_name)
 
       Description: Enable Sagemaker Canvas Settings
       Handler: index.lambda_handler
