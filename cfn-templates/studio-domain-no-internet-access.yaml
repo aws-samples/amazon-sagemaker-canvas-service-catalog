@@ -816,11 +816,9 @@ Resources:
                   - sagemaker:DeleteApp
                   - sagemaker:CreatePresignedDomainUrl
                 Resource:
-                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/Canvas/*"
-                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/canvas/*"
-                Condition:
-                  Bool:
-                    sagemaker:OwnerUserProfileArn: "false"
+                  #       arn:aws:sagemaker:{Region}:{Account}:app/{DomainId}/{UserProfileName}/{AppType}/{AppName}
+                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/${StudioDomain.DomainId}/*/Canvas/*"
+                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/${StudioDomain.DomainId}/*/canvas/*"
         - PolicyName: SMStudioAppPermissionsTag
           PolicyDocument:
             Version: "2012-10-17"
