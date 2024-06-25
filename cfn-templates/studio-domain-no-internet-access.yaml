@@ -817,8 +817,8 @@ Resources:
                   - sagemaker:CreatePresignedDomainUrl
                 Resource:
                   #       arn:aws:sagemaker:{Region}:{Account}:app/{DomainId}/{UserProfileName}/{AppType}/{AppName}
-                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/${StudioDomain.DomainId}/*/Canvas/*"
-                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/${StudioDomain.DomainId}/*/canvas/*"
+                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/Canvas/*"
+                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/canvas/*"
         - PolicyName: SMStudioAppPermissionsTag
           PolicyDocument:
             Version: "2012-10-17"
