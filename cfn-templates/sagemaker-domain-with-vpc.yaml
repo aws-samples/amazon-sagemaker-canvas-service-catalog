@@ -676,7 +676,6 @@ Resources:
       Path: /
       ManagedPolicyArns:
         # Canvas-specific policies below
-        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
         - arn:aws:iam::aws:policy/AmazonSageMakerCanvasFullAccess
         - arn:aws:iam::aws:policy/AmazonSageMakerCanvasDataPrepFullAccess
         - arn:aws:iam::aws:policy/AmazonSageMakerCanvasAIServicesAccess
