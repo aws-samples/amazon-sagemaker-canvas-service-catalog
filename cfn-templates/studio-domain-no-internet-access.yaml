@@ -21,49 +21,7 @@ Parameters:
     ConstraintDescription: "Must be a valid CIDR block in the format x.x.x.x/x"
     Default: "10.0.0.0/16"
 
-Mappings:
-  SageMakerImageRegionToAccountMap:
-    us-east-1:
-      accountid: '081325390199'
-    us-east-2:
-      accountid: '429704687514'
-    us-west-1:
-      accountid: '742091327244'
-    us-west-2:
-      accountid: '236514542706'
-    af-south-1:
-      accountid: '559312083959'
-    ap-east-1:
-      accountid: '493642496378'
-    ap-south-1:
-      accountid: '394103062818'
-    ap-northeast-2:
-      accountid: '806072073708'
-    ap-southeast-1:
-      accountid: '492261229750'
-    ap-southeast-2:
-      accountid: '452832661640'
-    ap-northeast-1:
-      accountid: '102112518831'
-    ca-central-1:
-      accountid: '310906938811'
-    eu-central-1:
-      accountid: '936697816551'
-    eu-west-1:
-      accountid: '470317259841'
-    eu-west-2:
-      accountid: '712779665605'
-    eu-west-3:
-      accountid: '615547856133'
-    eu-north-1:
-      accountid: '243637512696'
-    eu-south-1:
-      accountid: '592751261982'
-    sa-east-1:
-      accountid: '782484402741'
-
 Resources:
-  ### S3 BUCKET
   ### S3 BUCKET
   S3BucketManagementRole:
     Type: AWS::IAM::Role
@@ -718,6 +676,7 @@ Resources:
       Path: /
       ManagedPolicyArns:
         # Canvas-specific policies below
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
         - arn:aws:iam::aws:policy/AmazonSageMakerCanvasFullAccess
         - arn:aws:iam::aws:policy/AmazonSageMakerCanvasDataPrepFullAccess
         - arn:aws:iam::aws:policy/AmazonSageMakerCanvasAIServicesAccess
@@ -767,10 +726,6 @@ Resources:
                   - ec2:DescribeRouteTables
                   - kms:ListAliases
                 Resource: "*"
-        - PolicyName: KMSKeyPermissions
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
               - Effect: Allow
                 Action:
                   - kms:CreateGrant
@@ -789,7 +744,7 @@ Resources:
                 Action:
                   - cloudwatch:PutMetricData
                 Resource: "*"
-        - PolicyName: SageMakerUserAndAppDetails
+        - PolicyName: SageMakerPermissions
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -806,10 +761,6 @@ Resources:
                   - sagemaker:ListTags
                   - sagemaker:ListUserProfiles
                 Resource: "*"
-        - PolicyName: SageMakerCanvasAppPermissions
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
               - Effect: Allow
                 Action:
                   - sagemaker:CreateApp
@@ -819,10 +770,6 @@ Resources:
                   #       arn:aws:sagemaker:{Region}:{Account}:app/{DomainId}/{UserProfileName}/{AppType}/{AppName}
                   - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/Canvas/*"
                   - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/canvas/*"
-        - PolicyName: SMStudioAppPermissionsTag
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
               - Effect: Allow
                 Action:
                   - sagemaker:AddTags
@@ -933,13 +880,6 @@ Resources:
       UserProfileName: !Ref UserProfileName
       UserSettings:
         ExecutionRole: !GetAtt SageMakerExecutionRole.Arn
-        JupyterServerAppSettings:
-          DefaultResourceSpec:
-            InstanceType: system
-            SageMakerImageArn:
-              Fn::Sub:
-                - 'arn:aws:sagemaker:${AWS::Region}:${AccountId}:image/jupyter-server-3'
-                - AccountId: !FindInMap [SageMakerImageRegionToAccountMap, !Ref 'AWS::Region', accountid]
 
 Outputs:
   SageMakerVPC:
