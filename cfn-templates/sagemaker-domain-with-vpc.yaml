@@ -717,9 +717,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:CreateNetworkInterfacePermission
+                  - ec2:DeleteNetworkInterface
+                  - ec2:DeleteNetworkInterfacePermission
+                  - ec2:DescribeDhcpOptions
                   - ec2:DescribeNetworkInterfaces
-                  - ec2:DescribeSubnets
                   - ec2:DescribeSecurityGroups
+                  - ec2:DescribeSubnets
                   - ec2:DescribeVpcs
                   - ec2:DescribeVpcEndpoints
                   - ec2:DescribeVpcEndpointServices
@@ -760,6 +765,14 @@ Resources:
                   - sagemaker:ListSpaces
                   - sagemaker:ListTags
                   - sagemaker:ListUserProfiles
+                  - sagemaker:CreateTrainingJob
+                  - sagemaker:StopTrainingJob
+                  - sagemaker:DescribeTrainingJob
+                  - sagemaker:StopAutoMLJob
+                  - sagemaker:DescribeTransformJob
+                  - sagemaker:CreateTransformJob
+                  - sagemaker:StopTransformJob
+                  - sagemaker:Search
                 Resource: "*"
               - Effect: Allow
                 Action:
