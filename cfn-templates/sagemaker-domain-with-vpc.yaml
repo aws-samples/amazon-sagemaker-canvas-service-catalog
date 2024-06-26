@@ -795,7 +795,18 @@ Resources:
                   - arn:aws:sagemaker:*:*:*Canvas*
                   - arn:aws:sagemaker:*:*:*canvas*
                   - arn:aws:sagemaker:*:*:*model-compilation-*
-
+        - PolicyName: AutoscalingOperations
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - application-autoscaling:DescribeScalingActivities
+                Resource: "arn:aws:application-autoscaling:*:*:scalable-target/*"
+                Condition:
+                  StringEquals:
+                    application-autoscaling:service-namespace: "sagemaker"
+                    application-autoscaling:scalable-dimension: "sagemaker:variant:DesiredInstanceCount"
 
   ### SageMaker Canvas Extra Settings
   LambdaExecutionRole:
