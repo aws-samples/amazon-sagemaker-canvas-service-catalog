@@ -765,13 +765,6 @@ Resources:
                   - sagemaker:ListSpaces
                   - sagemaker:ListTags
                   - sagemaker:ListUserProfiles
-                  - sagemaker:CreateTrainingJob
-                  - sagemaker:StopTrainingJob
-                  - sagemaker:DescribeTrainingJob
-                  - sagemaker:StopAutoMLJob
-                  - sagemaker:DescribeTransformJob
-                  - sagemaker:CreateTransformJob
-                  - sagemaker:StopTransformJob
                   - sagemaker:Search
                 Resource: "*"
               - Effect: Allow
@@ -788,6 +781,21 @@ Resources:
                   - sagemaker:AddTags
                 Resource:
                   - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:*/*"
+              - Sid: MissingCanvasFullAccessPermissions
+                Effect: Allow
+                Action:
+                  - sagemaker:CreateTrainingJob
+                  - sagemaker:CreateTransformJob
+                  - sagemaker:DescribeTrainingJob
+                  - sagemaker:DescribeTransformJob
+                  - sagemaker:StopAutoMLJob
+                  - sagemaker:StopTrainingJob
+                  - sagemaker:StopTransformJob
+                Resource:
+                  - arn:aws:sagemaker:*:*:*Canvas*
+                  - arn:aws:sagemaker:*:*:*canvas*
+                  - arn:aws:sagemaker:*:*:*model-compilation-*
+
 
   ### SageMaker Canvas Extra Settings
   LambdaExecutionRole:
